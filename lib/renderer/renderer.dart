@@ -1,6 +1,7 @@
 import 'dart:html';
 
 import 'package:bullseye/bullseye.dart';
+import 'package:bullseye/elements/input.dart';
 import 'package:bullseye/elements/text.dart' as text;
 import 'package:bullseye/renderer/render_context.dart';
 import 'package:bullseye/utils/utils.dart';
@@ -32,6 +33,7 @@ class Renderer {
       case text.Text: return _buildText(element as text.Text, isRerender);
       case Button: return _buildButton(element as Button, isRerender);
       case Break: return _buildBreak(element as Break, isRerender);
+      case Input: return _buildInput(element as Input, isRerender);
     }
 
     throw Exception('Component of type ${element.runtimeType} not implemented.');
@@ -43,6 +45,7 @@ class Renderer {
     final internalId = component.internalId ?? Utils.generateInternalId();
     element.classes.add(internalId);
     component.internalId = internalId;
+    if (component.id != null) element.id = component.id!;
 
     renderContext.internalIdNodes[internalId] = component;
   } 
@@ -51,7 +54,7 @@ class Renderer {
     final newElement = SpanElement();
     _doHouseKeeping(component, newElement, isRerender);
 
-    if (component.id != null) newElement.id = component.id!;
+    
     newElement.innerText = component.text;
     return newElement;
   }
@@ -59,16 +62,13 @@ class Renderer {
   static Node _buildBreak(Break component, bool isRerender) {
     final newElement = BRElement();
     _doHouseKeeping(component, newElement, isRerender);
-
-    if (component.id != null) newElement.id = component.id!;
     return newElement;
   } 
 
   static Node _buildButton(Button component, bool isRerender) {
     final newElement = ButtonElement();
     _doHouseKeeping(component, newElement, isRerender);
-
-    if (component.id != null) newElement.id = component.id!;
+    
     for (final child in component.children ?? []) {
       newElement.append(_renderComponent(child, isRerender));
     }
@@ -82,7 +82,6 @@ class Renderer {
     final newElement = DivElement();
     _doHouseKeeping(component, newElement, isRerender);
 
-    if (component.id != null) newElement.id = component.id!;
     for (final child in component.children ?? []) {
       newElement.append(_renderComponent(child, isRerender));
     }
@@ -93,10 +92,23 @@ class Renderer {
     final newElement = SpanElement();
     _doHouseKeeping(component, newElement, isRerender);
 
-    if (component.id != null) newElement.id = component.id!;
     for (final child in component.children ?? []) {
       newElement.append(_renderComponent(child, isRerender));
     }
+    return newElement;
+  }
+
+  static Node _buildInput(Input component, bool isRerender) {
+    final newElement = InputElement(type: component.type);
+    _doHouseKeeping(component, newElement, isRerender);
+
+    if (component.inputController != null) {
+      newElement.value = component.inputController!.text ?? '';
+      newElement.onChange.listen((event) {
+        component.inputController!.text = newElement.value;
+      });
+    }
+
     return newElement;
   }
 

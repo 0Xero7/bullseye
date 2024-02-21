@@ -8,7 +8,7 @@ abstract class StatefulComponent extends Component {
 
   void setState(void Function() body) {
     body.call();
-
+    
     scheduleMicrotask(() {
       Renderer.rerender(internalId!);
     });
